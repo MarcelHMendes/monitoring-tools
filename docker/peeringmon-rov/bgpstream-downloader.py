@@ -4,11 +4,13 @@
 import argparse
 import ipaddress
 import json
+import logging
+import os
 import sys
-from datetime import datetime, timedelta
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from multiprocessing import Pool
-from typing import Annotated, List, Optional, Union
+from typing import List, Optional, Union
 
 import dateutil
 from lib import *
@@ -16,17 +18,11 @@ from lib import *
 
 @dataclass
 class BGPDump:
-    start_time: Annotated[str, "UTC datetime string"]
-    end_time: Annotated[str, "UTC datetime string"]
+    start_time: str
+    end_time: str
     dump_type: str
     prefixes: List[ipaddress.IPv4Network]
-    project: Optional[
-        Union[
-            Annotated[str, "route_views"],
-            Annotated[str, "ripe_ris"],
-            Annotated[str, "ris+views"],
-        ]
-    ] = None
+    project: Optional[str] = None
     collectors: Optional[List[str]] = None
 
     def __post_init__(self):
@@ -74,11 +70,12 @@ class BGPDump:
 
         return stream
 
+
 def process_bgpdump(bgp_dump):
     return bgp_dump.download_bgpdump()
 
-def generate_times_list():
 
+def generate_times_list():
     # Get the current UTC datetime
     current_datetime = datetime.datetime.utcnow()
 
@@ -95,6 +92,7 @@ def generate_times_list():
 
     return date_list
 
+
 def create_parser():
     desc = """Download BGPData"""
     parser = argparse.ArgumentParser(description=desc)
@@ -104,7 +102,7 @@ def create_parser():
         dest="prefixes",
         action="store",
         required=True,
-        help="List of prefixes to be filtered"
+        help="List of prefixes to be filtered",
     )
     parser.add_argument(
         "--project",
@@ -113,8 +111,7 @@ def create_parser():
         action="store",
         default=None,
         required=False,
-        help="Name of the project (route_views, ripe_ris, ris+views)"
-
+        help="Name of the project (route_views, ripe_ris, ris+views)",
     )
     parser.add_argument(
         "--dump_type",
@@ -123,7 +120,7 @@ def create_parser():
         action="store",
         default=None,
         required=True,
-        help="Type of dump (ribs or updates)"
+        help="Type of dump (ribs or updates)",
     )
     parser.add_argument(
         "--collectors",
@@ -132,9 +129,10 @@ def create_parser():
         action="store",
         required=False,
         default=None,
-        help="Collectors to be used"
+        help="Collectors to be used",
     )
     return parser
+
 
 def main():
     root = logging.getLogger()
@@ -149,7 +147,7 @@ def main():
     TIMES = generate_times_list()
 
     bgp_dumps = []
-    for ti in range(0,len(TIMES) - 1):
+    for ti in range(0, len(TIMES) - 1):
         bgp_dumps.append(
             BGPDump(
                 start_time=TIMES[ti],
@@ -157,7 +155,7 @@ def main():
                 dump_type=opts.dump_type,
                 prefixes=opts.prefixes,
                 project=opts.project,
-                collectors=opts.collectors
+                collectors=opts.collectors,
             )
         )
 
@@ -173,8 +171,10 @@ def main():
         stream_list.extend(stream)
 
     file_name = f"bgpdump_{TIMES[0]}_{TIMES[-1]}_{opts.dump_type}_{opts.project}.json"
-    with open(file_name, "w", encoding="utf-8") as fd:
+    base_path = "/var/monitor/data"
+    with open(os.path.join(base_path, file_name), "w", encoding="utf-8") as fd:
         json.dump(stream_list, fd, ensure_ascii=False, indent=4)
+
 
 if __name__ == "__main__":
     sys.exit(main())

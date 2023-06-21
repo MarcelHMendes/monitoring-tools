@@ -1,0 +1,7 @@
+version: "3.3"
+
+services:
+  rov-monitor:
+    build: ./peeringmon-rov
+    volumes:
+      - /etc/peering/monitor/data:/var/monitor/data
