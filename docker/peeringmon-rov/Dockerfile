@@ -2,10 +2,17 @@ FROM caida/bgpstream:latest
 
 LABEL maintainer="Marcel Mendes <marcelmendes@dcc.ufmg.br>"
 
+# Install dumb-init to support our entrypoint script
+RUN apt-get install -y wget
+RUN wget https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_amd64.deb
+RUN dpkg -i dumb-init_*.deb
+
 WORKDIR /root/
 
 ADD lib.py .
 ADD bgpstream-downloader.py .
+ADD entrypoint.sh .
 
-ENTRYPOINT ["/usr/bin/python3"]
-CMD ["bgpstream-downloader.py", "--prefixes",  "138.185.229.0/24", "--dump_type", "updates", "--project", "ripe_ris"]
+RUN chmod u+x ./entrypoint.sh
+
+ENTRYPOINT ["./entrypoint.sh"]
