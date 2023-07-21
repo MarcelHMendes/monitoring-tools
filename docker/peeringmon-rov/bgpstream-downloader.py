@@ -71,28 +71,6 @@ class BGPDump:
         return stream
 
 
-def process_bgpdump(bgp_dump):
-    return bgp_dump.download_bgpdump()
-
-
-def generate_times_list():
-    # Get the current UTC datetime
-    current_datetime = datetime.datetime.utcnow()
-
-    # Calculate the start and end datetime for the last week
-    start_datetime = current_datetime - timedelta(days=7)
-    end_datetime = current_datetime
-
-    # Generate a list of datetime objects for each day in the last week
-    date_list = []
-    current_date = start_datetime
-    while current_date <= end_datetime:
-        date_list.append(current_date.strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
-        current_date += timedelta(days=1)
-
-    return date_list
-
-
 def create_parser():
     desc = """Download BGPData"""
     parser = argparse.ArgumentParser(description=desc)
@@ -112,6 +90,26 @@ def create_parser():
         default=None,
         required=False,
         help="Name of the project (route_views, ripe_ris, ris+views)",
+    )
+    parser.add_argument(
+        "--start-date",
+        dest="start_date",
+        action="store",
+        metavar="ISO",
+        type=datetime.date.fromisoformat,
+        required=True,
+        default=None,
+        help="Start time of measurements",
+    )
+    parser.add_argument(
+        "--stop-date",
+        dest="stop_date",
+        action="store",
+        metavar="ISO",
+        type=datetime.date.fromisoformat,
+        required=True,
+        default=None,
+        help="Stop time of measurements",
     )
     parser.add_argument(
         "--dump_type",
@@ -134,6 +132,24 @@ def create_parser():
     return parser
 
 
+def process_bgpdump(bgp_dump):
+    return bgp_dump.download_bgpdump()
+
+
+def generate_times_list(opts):
+    # Get the current UTC datetime
+    current_datetime = datetime.datetime.utcnow()
+
+    # Generate a list of datetime objects for each day in the last week
+    date_list = []
+    current_date = opts.start_date
+    while current_date <= opts.stop_date:
+        date_list.append(current_date.strftime("%Y-%m-%dT%H:%M:%S.%fZ"))
+        current_date += timedelta(days=1)
+
+    return date_list
+
+
 def main():
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
@@ -144,7 +160,7 @@ def main():
     parser = create_parser()
     opts = parser.parse_args()
 
-    TIMES = generate_times_list()
+    TIMES = generate_times_list(opts)
 
     bgp_dumps = []
     for ti in range(0, len(TIMES) - 1):
@@ -159,7 +175,7 @@ def main():
             )
         )
 
-    pool = Pool()
+    pool = Pool(processes=8)
     results_iterator = list(pool.imap(process_bgpdump, bgp_dumps))
 
     pool.close()
