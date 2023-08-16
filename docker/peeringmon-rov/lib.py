@@ -92,80 +92,80 @@ def parse_line_string_to_json(input_string):
     return json_data
 
 
-def is_utc_datetime(datetime_str):
-    """
-    Check if the provided datetime string is in UTC datetime format.
+# def is_utc_datetime(datetime_str):
+#     """
+#     Check if the provided datetime string is in UTC datetime format.
 
-    Args:
-        datetime_str (str): The datetime string to check.
+#     Args:
+#         datetime_str (str): The datetime string to check.
 
-    Returns:
-        bool: True if the datetime string is in UTC datetime format, False otherwise.
-    """
-    try:
-        datetime.datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-        return True
-    except (ValueError, TypeError):
-        return False
-
-
-def is_unix_timestamp(datetime_str):
-    """
-    Check if the provided datetime string is a Unix timestamp.
-
-    Args:
-        datetime_str (str): The datetime string to check.
-
-    Returns:
-        bool: True if the datetime string is a valid Unix timestamp, False otherwise.
-    """
-    try:
-        datetime.datetime.utcfromtimestamp(float(datetime_str))
-        return True
-    except (ValueError, TypeError):
-        return False
+#     Returns:
+#         bool: True if the datetime string is in UTC datetime format, False otherwise.
+#     """
+#     try:
+#         datetime.datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%fZ")
+#         return True
+#     except (ValueError, TypeError):
+#         return False
 
 
-def is_timestamp_between(start_timestamp, end_timestamp, check_timestamp):
-    """Check if a given timestamp is between two other timestamps.
+# def is_unix_timestamp(datetime_str):
+#     """
+#     Check if the provided datetime string is a Unix timestamp.
 
-    Args:
-        start_timestamp (str): Start timestamp in ISO 8601 or UTC datetime format.
-        end_timestamp (str): End timestamp in ISO 8601 or UTC datetime format.
-        check_timestamp (str): Timestamp to check in ISO 8601 or UTC datetime format.
+#     Args:
+#         datetime_str (str): The datetime string to check.
 
-    Returns:
-        bool: True if check_timestamp is between start_timestamp and end_timestamp, False otherwise.
-    """
-
-    if is_utc_datetime(start_timestamp):
-        start_timestamp = datetime_str_to_timestamp(start_timestamp)
-    if is_utc_datetime(end_timestamp):
-        end_timestamp = datetime_str_to_timestamp(end_timestamp)
-    if is_utc_datetime(check_timestamp):
-        check_timestamp = datetime_str_to_timestamp(check_timestamp)
-
-    if start_timestamp <= end_timestamp:
-        return start_timestamp <= check_timestamp <= end_timestamp
-    else:
-        return start_timestamp <= check_timestamp or check_timestamp <= end_timestamp
+#     Returns:
+#         bool: True if the datetime string is a valid Unix timestamp, False otherwise.
+#     """
+#     try:
+#         datetime.datetime.utcfromtimestamp(float(datetime_str))
+#         return True
+#     except (ValueError, TypeError):
+#         return False
 
 
-def unix_timestamp_to_utc_datetime(timestamp, datetime_format=False):
-    """Convert a Unix timestamp to a UTC datetime object.
+# def is_timestamp_between(start_timestamp, end_timestamp, check_timestamp):
+#     """Check if a given timestamp is between two other timestamps.
 
-    Args:
-        timestamp (int): Unix timestamp.
-        datetime_format (bool): If true returns a datetime object
+#     Args:
+#         start_timestamp (str): Start timestamp in ISO 8601 or UTC datetime format.
+#         end_timestamp (str): End timestamp in ISO 8601 or UTC datetime format.
+#         check_timestamp (str): Timestamp to check in ISO 8601 or UTC datetime format.
 
-    Returns:
-        datetime.datetime: A datetime object or string in UTC.
-    """
-    utc_datetime = datetime.datetime.utcfromtimestamp(timestamp)
-    if datetime_format:
-        return utc_datetime
-    formatted_dt = utc_datetime.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-    return formatted_dt
+#     Returns:
+#         bool: True if check_timestamp is between start_timestamp and end_timestamp, False otherwise.
+#     """
+
+#     if is_utc_datetime(start_timestamp):
+#         start_timestamp = datetime_str_to_timestamp(start_timestamp)
+#     if is_utc_datetime(end_timestamp):
+#         end_timestamp = datetime_str_to_timestamp(end_timestamp)
+#     if is_utc_datetime(check_timestamp):
+#         check_timestamp = datetime_str_to_timestamp(check_timestamp)
+
+#     if start_timestamp <= end_timestamp:
+#         return start_timestamp <= check_timestamp <= end_timestamp
+#     else:
+#         return start_timestamp <= check_timestamp or check_timestamp <= end_timestamp
+
+
+# def unix_timestamp_to_utc_datetime(timestamp, datetime_format=False):
+#     """Convert a Unix timestamp to a UTC datetime object.
+
+#     Args:
+#         timestamp (int): Unix timestamp.
+#         datetime_format (bool): If true returns a datetime object
+
+#     Returns:
+#         datetime.datetime: A datetime object or string in UTC.
+#     """
+#     utc_datetime = datetime.datetime.utcfromtimestamp(timestamp)
+#     if datetime_format:
+#         return utc_datetime
+#     formatted_dt = utc_datetime.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+#     return formatted_dt
 
 
 def datetime_str_to_timestamp(datetime_str):
@@ -223,193 +223,193 @@ def download_bgpstream(
 
     elem_list = []
     for elem in stream:
-        elem_list.append(parse_line_string_to_json(str(elem).replace('\"', '"')))
+        elem_list.append(parse_line_string_to_json(str(elem).replace('"', '"')))
 
     return elem_list
 
 
-def as_paths_in_interval_time(
-    records,
-    start_time=None,
-    end_time=None,
-):
-    """Return a list of unique AS-paths present in a given time interval of BGP dump file.
+# def as_paths_in_interval_time(
+#     records,
+#     start_time=None,
+#     end_time=None,
+# ):
+#     """Return a list of unique AS-paths present in a given time interval of BGP dump file.
 
-    Args:
-        start_time (str): Start time of the interval in ISO 8601 format.
-        end_time (str): End time of the interval in ISO 8601 format.
-        records (list): List of records in Dict format".
+#     Args:
+#         start_time (str): Start time of the interval in ISO 8601 format.
+#         end_time (str): End time of the interval in ISO 8601 format.
+#         records (list): List of records in Dict format".
 
-    Returns:
-        list: A list of unique AS-paths present in the given time interval of the BGP dump file.
-    """
+#     Returns:
+#         list: A list of unique AS-paths present in the given time interval of the BGP dump file.
+#     """
 
-    as_paths_list = []
+#     as_paths_list = []
 
-    if start_time == None:
-        start_time = records[0]["timestamp"]
-    if end_time == None:
-        end_time = records[-1]["timestamp"]
+#     if start_time == None:
+#         start_time = records[0]["timestamp"]
+#     if end_time == None:
+#         end_time = records[-1]["timestamp"]
 
-    for record in records:
-        if "None" in record["as-path"] or record["type"] != "A":
-            continue
-        if (
-            is_timestamp_between(start_time, end_time, int(record["timestamp"]))
-            and record["as-path"] not in as_paths_list
-        ):
-            as_paths_list.append(list(map(int, record["as-path"])))
+#     for record in records:
+#         if "None" in record["as-path"] or record["type"] != "A":
+#             continue
+#         if (
+#             is_timestamp_between(start_time, end_time, int(record["timestamp"]))
+#             and record["as-path"] not in as_paths_list
+#         ):
+#             as_paths_list.append(list(map(int, record["as-path"])))
 
-    return as_paths_list
-
-
-def number_of_updates_between_interval(
-    records, start_time=None, end_time=None, filter_record_type=["P"]
-):
-    """
-    Counts the number of updates within a specified time interval from a BGP dump file.
-
-    Args:
-        start_time (int): The start timestamp of the interval.
-        end_time (int): The end timestamp of the interval.
-        records (list): List of records in Dict format".
-        filter_record_type (list, optional): List of record types to filter. Defaults to an empty list.
-
-    Returns:
-        int: The number of updates within the specified time interval.
-
-    """
-    update_list = []
-
-    if start_time == None:
-        start_time = records[0]["timestamp"]
-    if end_time == None:
-        end_time = records[-1]["timestamp"]
-
-    for record in records:
-        if record["type"] in filter_record_type:
-            continue
-        if is_timestamp_between(start_time, end_time, int(record["timestamp"])):
-            update_list.append(record)
-
-    return len(update_list)
+#     return as_paths_list
 
 
-def _get_next_hop_from_as_path(as_path, peering_asn=47065):
-    """
-    Extracts the next hop from the AS path.
+# def number_of_updates_between_interval(
+#     records, start_time=None, end_time=None, filter_record_type=["P"]
+# ):
+#     """
+#     Counts the number of updates within a specified time interval from a BGP dump file.
 
-    Args:
-        as_path (list): The AS path represented as a list of AS numbers.
-        peering_asn (int, optional): The peering ASN. Defaults to 47065.
+#     Args:
+#         start_time (int): The start timestamp of the interval.
+#         end_time (int): The end timestamp of the interval.
+#         records (list): List of records in Dict format".
+#         filter_record_type (list, optional): List of record types to filter. Defaults to an empty list.
 
-    Returns:
-        int: The next hop AS number.
+#     Returns:
+#         int: The number of updates within the specified time interval.
 
-    Raises:
-        SystemExit: If the AS path is invalid.
-    """
-    if int(as_path[-2]) == peering_asn:
-        return int(as_path[-3])
-    else:
-        sys.exit("Invalid AS-PATH")
+#     """
+#     update_list = []
 
+#     if start_time == None:
+#         start_time = records[0]["timestamp"]
+#     if end_time == None:
+#         end_time = records[-1]["timestamp"]
 
-def get_next_hop_set(list_of_as_path, peering_asn=47065):
-    """
-    Retrieves the unique set of next hop AS numbers from a list of AS paths.
+#     for record in records:
+#         if record["type"] in filter_record_type:
+#             continue
+#         if is_timestamp_between(start_time, end_time, int(record["timestamp"])):
+#             update_list.append(record)
 
-    Args:
-        list_of_as_path (list): A list of AS paths, where each AS path is represented as a list of AS numbers.
-        peering_asn (int, optional): The peering ASN. Defaults to 47065.
-
-    Returns:
-        list: A list of unique next hop AS numbers.
-    """
-    next_hop_list = []
-    for as_path in list_of_as_path:
-        next_hop = _get_next_hop_from_as_path(as_path, peering_asn)
-        if next_hop not in next_hop_list:
-            next_hop_list.append(next_hop)
-    return next_hop_list
+#     return len(update_list)
 
 
-def read_bgpdump_file(bgpdump_file, start_timestamp=None, end_timestamp=None):
-    """
-    Read a BGP dump file in JSON format and filter the records based on the provided start and end timestamps.
+# def _get_next_hop_from_as_path(as_path, peering_asn=47065):
+#     """
+#     Extracts the next hop from the AS path.
 
-    Args:
-        bgpdump_file (str): The path to the BGP dump file.
-        start_timestamp (str, optional): Start timestamp for filtering the records. If provided, only records with timestamps greater than or equal to this value will be included.
-        end_timestamp (str, optional): End timestamp for filtering the records. If provided, only records with timestamps less than or equal to this value will be included.
-        utc_format (bool, optional): Flag indicating whether the timestamps are in UTC format. If True, timestamps will be converted to Unix timestamps for comparison.
-    Returns:
-        list: A list of BGP records filtered based on the provided timestamps.
-    """
+#     Args:
+#         as_path (list): The AS path represented as a list of AS numbers.
+#         peering_asn (int, optional): The peering ASN. Defaults to 47065.
 
-    fd = open(bgpdump_file, "r")
-    data = json.load(fd)
-    fd.close()
-    records = []
+#     Returns:
+#         int: The next hop AS number.
 
-    if is_utc_datetime(start_timestamp):
-        start_timestamp = datetime_str_to_timestamp(start_timestamp)
-    if is_utc_datetime(end_timestamp):
-        end_timestamp = datetime_str_to_timestamp(end_timestamp)
-
-    for rec in data:
-        if start_timestamp and rec["timestamp"] < start_timestamp:
-            continue
-        if end_timestamp and rec["timestamp"] > end_timestamp:
-            continue
-        records.append(rec)
-
-    _check_records_sorted_by_timestamp(records)
-
-    return records
+#     Raises:
+#         SystemExit: If the AS path is invalid.
+#     """
+#     if int(as_path[-2]) == peering_asn:
+#         return int(as_path[-3])
+#     else:
+#         sys.exit("Invalid AS-PATH")
 
 
-def indexed_routes_by_peer_address(records, filter_record_type=["P"]):
-    """
-    Indexes routes by peer address.
+# def get_next_hop_set(list_of_as_path, peering_asn=47065):
+#     """
+#     Retrieves the unique set of next hop AS numbers from a list of AS paths.
 
-    Iterates through the provided records and creates a dictionary where each peer address is associated
-    with the corresponding record.
+#     Args:
+#         list_of_as_path (list): A list of AS paths, where each AS path is represented as a list of AS numbers.
+#         peering_asn (int, optional): The peering ASN. Defaults to 47065.
 
-    Args:
-        records (list): List of records containing route information.
-        filter_record_type (list, optional): List of record types to filter. Defaults to [].
-
-    Returns:
-        dict: A dictionary where each peer address is mapped to the corresponding record.
-    """
-    indexed_updates = {}
-
-    # Note that only the last announcement (or withdraw) is saved from each session (peer, collector)
-    for record in records:
-        if record["type"] in filter_record_type:
-            continue
-        indexed_updates[record["peer_address"]] = record
-
-    return indexed_updates
+#     Returns:
+#         list: A list of unique next hop AS numbers.
+#     """
+#     next_hop_list = []
+#     for as_path in list_of_as_path:
+#         next_hop = _get_next_hop_from_as_path(as_path, peering_asn)
+#         if next_hop not in next_hop_list:
+#             next_hop_list.append(next_hop)
+#     return next_hop_list
 
 
-def _check_records_sorted_by_timestamp(records):
-    """
-    Check if the records are sorted by timestamp.
+# def read_bgpdump_file(bgpdump_file, start_timestamp=None, end_timestamp=None):
+#     """
+#     Read a BGP dump file in JSON format and filter the records based on the provided start and end timestamps.
 
-    This function takes a list of records and checks if they are sorted by timestamp in ascending order.
-    If any record is found to have a timestamp earlier than the previous record, an error message is printed
-    and the program exits.
+#     Args:
+#         bgpdump_file (str): The path to the BGP dump file.
+#         start_timestamp (str, optional): Start timestamp for filtering the records. If provided, only records with timestamps greater than or equal to this value will be included.
+#         end_timestamp (str, optional): End timestamp for filtering the records. If provided, only records with timestamps less than or equal to this value will be included.
+#         utc_format (bool, optional): Flag indicating whether the timestamps are in UTC format. If True, timestamps will be converted to Unix timestamps for comparison.
+#     Returns:
+#         list: A list of BGP records filtered based on the provided timestamps.
+#     """
 
-    Args:
-        records (list): A list of dictionaries representing records.
-            Each record dictionary should have a "timestamp" key with a timestamp value.
+#     fd = open(bgpdump_file, "r")
+#     data = json.load(fd)
+#     fd.close()
+#     records = []
 
-    Raises:
-        SystemExit: If the records are not sorted by timestamp.
+#     if is_utc_datetime(start_timestamp):
+#         start_timestamp = datetime_str_to_timestamp(start_timestamp)
+#     if is_utc_datetime(end_timestamp):
+#         end_timestamp = datetime_str_to_timestamp(end_timestamp)
 
-    """
-    for i_rec in range(1, len(records)):
-        if records[i_rec]["timestamp"] < records[i_rec - 1]["timestamp"]:
-            sys.exit("Error, records not sorted by timestamp")
+#     for rec in data:
+#         if start_timestamp and rec["timestamp"] < start_timestamp:
+#             continue
+#         if end_timestamp and rec["timestamp"] > end_timestamp:
+#             continue
+#         records.append(rec)
+
+#     _check_records_sorted_by_timestamp(records)
+
+#     return records
+
+
+# def indexed_routes_by_peer_address(records, filter_record_type=["P"]):
+#     """
+#     Indexes routes by peer address.
+
+#     Iterates through the provided records and creates a dictionary where each peer address is associated
+#     with the corresponding record.
+
+#     Args:
+#         records (list): List of records containing route information.
+#         filter_record_type (list, optional): List of record types to filter. Defaults to [].
+
+#     Returns:
+#         dict: A dictionary where each peer address is mapped to the corresponding record.
+#     """
+#     indexed_updates = {}
+
+#     # Note that only the last announcement (or withdraw) is saved from each session (peer, collector)
+#     for record in records:
+#         if record["type"] in filter_record_type:
+#             continue
+#         indexed_updates[record["peer_address"]] = record
+
+#     return indexed_updates
+
+
+# def _check_records_sorted_by_timestamp(records):
+#     """
+#     Check if the records are sorted by timestamp.
+
+#     This function takes a list of records and checks if they are sorted by timestamp in ascending order.
+#     If any record is found to have a timestamp earlier than the previous record, an error message is printed
+#     and the program exits.
+
+#     Args:
+#         records (list): A list of dictionaries representing records.
+#             Each record dictionary should have a "timestamp" key with a timestamp value.
+
+#     Raises:
+#         SystemExit: If the records are not sorted by timestamp.
+
+#     """
+#     for i_rec in range(1, len(records)):
+#         if records[i_rec]["timestamp"] < records[i_rec - 1]["timestamp"]:
+#             sys.exit("Error, records not sorted by timestamp")
