@@ -2,11 +2,14 @@ version: "3.3"
 
 services:
   peeringrov-bgpmonitor:
-    build: ./peeringmon-rov
+    build: ./bgpmonitor
     volumes:
       - /etc/peering/monitor/data:/var/monitor/data
+    env_file:
+      - /etc/peering/monitor/env
   peeringrov-ripemonitor:
-    build: ./ripemon-rov
+    build: ./ripemonitor
     volumes:
       - /etc/peering/monitor/data:/var/monitor/data
-    env_file: /etc/peering/monitor/env
+    env_file:
+      - /etc/peering/monitor/env

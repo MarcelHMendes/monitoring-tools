@@ -6,7 +6,6 @@ import json
 import logging
 import os
 import pathlib
-import resource
 import sys
 from multiprocessing import Pool
 
