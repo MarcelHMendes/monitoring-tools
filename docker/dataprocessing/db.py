@@ -22,53 +22,32 @@ class MappingDB:
         self.table = PrefixASNMapping()
         Base.metadata.create_all(self.engine)
 
-    def create_session(self):
-        self.Session = sessionmaker(bind=self.engine)
-
     def insert_data(self, prefix, subnet_mask, asn):
-        session = self.Session()
+        session = sessionmaker(bind=self.engine)
         new_data = PrefixASNMapping(prefix=prefix, subnet_mask=subnet_mask, asn=asn)
         session.add(new_data)
         session.commit()
 
-    def delete_data():
-        pass
+    def delete_data(self, prefix):
+        prefix_mapping = self.query_data(prefix)
+        if prefix_mapping:
+            session = sessionmaker(bind=self.engine)
+            session.delete(prefix_mapping)
+            return True
+        return False
 
-    def query_data():
-        pass
-
-    def _clean_line_data(self, line):
-        # remove spaces and add comma between elements
-        new_line = re.sub(r"\s+", ",", line.strip())
-        new_line = new_line.split(",")
-        return new_line
-
-    def load_db(self, file_path):
-        bulk_data = []
-        fd = open(file_path, "r")
-        line = fd.readline()
-        while line:
-            new_line = self._clean_line_data(line)
-            # ignore badly formatted lines
-            if len(new_line) > 3:
-                continue
-            bulk_data.append(
-                PrefixASNMapping(
-                    prefix=new_line[0], subnet_mask=new_line[1], asn=new_line[2]
-                )
-            )
-            line = fd.readline()
-
-        self.Session.add_all(bulk_data)
-        self.Session.commit()
+    def query_data(self, prefix):
+        session = sessionmaker(bind=self.engine)
+        result = session.query(PrefixASNMapping).filter(
+            PrefixASNMapping.prefix == prefix
+        )
+        return result
 
 
 def main():
     raw_file = "routeviews-rv2-20230820-1200.pfx2as"
     db_file = "sqlite:///my_database.db"
     db = MappingDB(db_file)
-    # db.create_session()
-    # db.load_db(raw_file)
 
 
 if __name__ == "__main__":
