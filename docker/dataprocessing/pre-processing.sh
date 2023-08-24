@@ -11,3 +11,5 @@ sed  -e 's/\s\+/,/g' "$input_file" | awk -F, 'NF <= 3 {print}' | nl -w1 -s',' > 
 
 # import data to database
 sqlite3 my_database.db ".import --csv $output_file prefix_asn_mapping"
+
+#rm $input_file
