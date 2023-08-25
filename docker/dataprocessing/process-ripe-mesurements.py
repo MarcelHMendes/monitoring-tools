@@ -3,7 +3,7 @@ import ipaddress
 import db
 
 
-def traceroute_ips2asn(DBinstance, traceroute_hops):
+def traceroute_ips2asn(traceroute_hops):
     for hop in traceroute_hops:
         result = hop.get("result", None)
         if not result:
@@ -13,26 +13,8 @@ def traceroute_ips2asn(DBinstance, traceroute_hops):
             continue
         ip_addr = ipaddress.IPv4Address(ip_str)
         ip_net = ipaddress.ip_network(ip_addr)
-        ip_net_addr = ".".join(str(ip_net.network_address).split(".")[:-1]) + ".2"
-        # print(ip_net.network_address)
-        for pfxlen in range(24, 8, -1):
-            query = DBinstance.query_data(prefix=ip_net_addr, subnet_mask=str(pfxlen))
-            if query:
-                print(ip_net_addr)
-                break
-            else:
-                print("NOT")
-                return
 
 
-def print_query(query):
-    row_format = "Prefix={prefix}, Mask={subnet_mask} , ASN={asn}"
-    for row in query:
-        print(
-            row_format.format(
-                prefix=row.prefix, subnet_mask=row.subnet_mask, asn=row.asn
-            )
-        )
 
 
 fd = open("/etc/peering/monitor/data/ripe-measurements/41439480.json", "r")

@@ -1,8 +1,7 @@
 #!/bin/bash
 set -eu
 
-input_file="routeviews-rv2-20230820-1200.pfx2as"
-output_file="routeviews-rv2-20230820-1200.pfx2as.csv"
+python3 traceroutes_ip2file.py
 
 # Perform space-to-comma replacement
 # Remove lines with more than 3 elements (comma-separated)
