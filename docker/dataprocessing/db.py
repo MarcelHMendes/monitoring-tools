@@ -34,6 +34,7 @@ class MappingDB:
         if prefix_mapping:
             session = self.Session()
             session.delete(prefix_mapping)
+            session.commit()
             return True
         return False
 
@@ -44,19 +45,18 @@ class MappingDB:
                 PrefixASNMapping.prefix == prefix
                 and PrefixASNMapping.subnet_mask == subnet_mask
             )
-        result = session.query(PrefixASNMapping).filter(
-            PrefixASNMapping.prefix == prefix
-        )
-        return result
-
-    def print_query(self, query):
-        row_format = "Prefix={prefix}, Mask={subnet_mask} , ASN={asn}"
-        for row in query:
-            print(
-                row_format.format(
-                    prefix=row.prefix, subnet_mask=row.subnet_mask, asn=row.asn
-                )
+        else:
+            result = session.query(PrefixASNMapping).filter(
+                PrefixASNMapping.prefix == prefix
             )
+
+        if result.count() != 0:
+            result = result.first().prefix()
+        else:
+            result = None
+        session.commit()
+        session.close()
+        return result
 
 
 def main():
@@ -64,7 +64,7 @@ def main():
     db_file = "sqlite:///my_database.db"
     db = MappingDB(db_file)
     result = db.query_data(prefix="138.185.228.0")
-    db.print_query(result)
+    # db.print_query(result)
 
 
 if __name__ == "__main__":
