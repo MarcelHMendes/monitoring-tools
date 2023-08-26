@@ -9,10 +9,11 @@ import sys
 def dump_traceroute_ips(fd, traceroute_hops):
     for hop in traceroute_hops:
         result = hop.get("result", None)
-        if result:
-            ip_str = result[0].get("from", None)
-            if not ip_str:
-                continue
+        if not result:
+            continue
+        ip_str = result[0].get("from", None)
+        if not ip_str:
+            continue
         ip_addr = ipaddress.IPv4Address(ip_str)
         ip_net = ipaddress.ip_network(ip_addr)
 
