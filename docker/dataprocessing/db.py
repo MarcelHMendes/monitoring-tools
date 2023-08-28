@@ -40,7 +40,6 @@ class MappingDB:
 
     def query_data(self, ip):
         session = self.Session()
-
         result = session.query(IPASNMapping).filter(IPASNMapping.ip == ip)
 
         if result.count() != 0:
