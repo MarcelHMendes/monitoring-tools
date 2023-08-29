@@ -18,7 +18,7 @@ class IPASNMapping(Base):
 
 class MappingDB:
     def __init__(self, db_file):
-        self.engine = create_engine(db_file, echo=True)
+        self.engine = create_engine(db_file, echo=False, query_cache_size=0)
         self.table = IPASNMapping()
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)
@@ -43,7 +43,7 @@ class MappingDB:
         result = session.query(IPASNMapping).filter(IPASNMapping.ip == ip)
 
         if result.count() != 0:
-            result = result.first().ip()
+            result = result.first().ip
         else:
             result = None
         session.commit()
