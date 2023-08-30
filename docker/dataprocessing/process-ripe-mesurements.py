@@ -21,7 +21,7 @@ def ip2asn(DBinstance, traceroute_hops):
         ip_str = result[0].get("from", None)
         if not ip_str:
             continue
-        print(DBinstance.query_data(ip_str))
+        ipr = DBinstance.query_data(ip_str)
 
         # ip_addr = ipaddress.IPv4Address(ip_str)
         # ip_net = ipaddress.ip_network(ip_addr)
@@ -73,6 +73,7 @@ def main():
         data = json.load(fd)
 
         parsed_data = []
+        print(file)
         for traceroute in data:
             parsed_traceroute = {}
 

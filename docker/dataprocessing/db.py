@@ -10,9 +10,9 @@ Base = declarative_base()
 class IPASNMapping(Base):
     __tablename__ = "ip_asn_mapping"
 
-    id = Column(Integer, primary_key=True)
+    # id = Column(Integer, primary_key=True)
+    addr = Column(String, primary_key=True)
     asn = Column(Integer, nullable=False)
-    ip = Column(String, nullable=False)
     as_name = Column(String, nullable=False)
 
 
@@ -43,19 +43,16 @@ class MappingDB:
         result = session.query(IPASNMapping).filter(IPASNMapping.ip == ip)
 
         if result.count() != 0:
-            result = result.first().ip
+            result = result.first().asn
         else:
             result = None
-        session.commit()
         session.close()
         return result
 
 
 def main():
-    db_file = "sqlite:///my_database.db"
+    db_file = "sqlite:///cymru.db"
     db = MappingDB(db_file)
-    # result = db.query_data(prefix="138.185.228.0")
-    # db.print_query(result)
 
 
 if __name__ == "__main__":
