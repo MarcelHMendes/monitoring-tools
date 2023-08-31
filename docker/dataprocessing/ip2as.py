@@ -146,13 +146,6 @@ class IP2ASRadix:
         return IP2ASRadix(rt)
 
 
-loaders = {
-    "pfx2as:caida": IP2ASRadix.from_caida_prefix2as,
-    "pfx2as:bdrmapit": IP2ASRadix.from_bdrmapit_prefix2as,
-    "ip2as:bdrmapit": IP2ASDict.from_bdrmapit_sqlite3,
-}
-
-
 def main():
     rt = radix.Radix()
     ip2as = IP2ASRadix(rt)
@@ -162,5 +155,8 @@ def main():
     print(ip2as.get("24.207.0.146"))
     print(ip2as.get_prefix("24.207.0.146"))
 
+    ip2asdict = IP2ASDict()
+    ip2asdict = ip2asdict.from_team_cymru_sqlite3(pathlib.Path("cymru.db"))
+    print(ip2asdict)
 
 main()

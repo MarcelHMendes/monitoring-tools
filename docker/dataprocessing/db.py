@@ -11,9 +11,9 @@ class IPASNMapping(Base):
     __tablename__ = "ip_asn_mapping"
 
     # id = Column(Integer, primary_key=True)
+    asn = Column(Integer, nullable=True)
     addr = Column(String, primary_key=True)
-    asn = Column(Integer, nullable=False)
-    as_name = Column(String, nullable=False)
+    as_name = Column(String, nullable=True)
 
 
 class MappingDB:
@@ -23,14 +23,14 @@ class MappingDB:
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)
 
-    def insert_data(self, ip, asn, as_name):
+    def insert_data(self, addr, asn, as_name):
         session = self.Session()
-        new_data = IPASNMapping(ip=ip, asn=asn, as_name=as_name)
+        new_data = IPASNMapping(addr=addr, asn=asn, as_name=as_name)
         session.add(new_data)
         session.commit()
 
-    def delete_data(self, ip):
-        ip_mapping = self.query_data(ip)
+    def delete_data(self, addr):
+        ip_mapping = self.query_data(addr)
         if ip_mapping:
             session = self.Session()
             session.delete(ip_mapping)
@@ -38,9 +38,9 @@ class MappingDB:
             return True
         return False
 
-    def query_data(self, ip):
+    def query_data(self, addr):
         session = self.Session()
-        result = session.query(IPASNMapping).filter(IPASNMapping.ip == ip)
+        result = session.query(IPASNMapping).filter(IPASNMapping.addr == addr)
 
         if result.count() != 0:
             result = result.first().asn
