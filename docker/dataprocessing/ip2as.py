@@ -144,19 +144,3 @@ class IP2ASRadix:
                 node = rt.add(prefix)
                 node.data["asn"] = asn
         return IP2ASRadix(rt)
-
-
-def main():
-    rt = radix.Radix()
-    ip2as = IP2ASRadix(rt)
-    local = ip2as.download_latest_caida_pfx2as(pathlib.Path().absolute())
-    print(local)
-    ip2as = ip2as.from_caida_prefix2as(local)
-    print(ip2as.get("24.207.0.146"))
-    print(ip2as.get_prefix("24.207.0.146"))
-
-    ip2asdict = IP2ASDict()
-    ip2asdict = ip2asdict.from_team_cymru_sqlite3(pathlib.Path("cymru.db"))
-    print(ip2asdict)
-
-main()

@@ -5,6 +5,9 @@ import argparse
 import logging
 import ipaddress
 import sys
+import radix
+import ip2as
+import pathlib
 
 
 def get_ripe_files_list(dir):
@@ -13,7 +16,8 @@ def get_ripe_files_list(dir):
     return files
 
 
-def ip2asn(DBinstance, traceroute_hops):
+def ip2asn_mapping(radixdb, traceroute_hops):
+    hops = []
     for hop in traceroute_hops:
         result = hop.get("result", None)
         if not result:
@@ -21,10 +25,9 @@ def ip2asn(DBinstance, traceroute_hops):
         ip_str = result[0].get("from", None)
         if not ip_str:
             continue
-        ipr = DBinstance.query_data(ip_str)
-
-        # ip_addr = ipaddress.IPv4Address(ip_str)
-        # ip_net = ipaddress.ip_network(ip_addr)
+        asn = radixdb.get(ip_str)
+        hops.append(asn)
+    return hops
 
 
 def create_parser():
@@ -66,7 +69,13 @@ def main():
     opts = parser.parse_args()
     fd_out = open(opts.outdir, "a")
 
-    database = db.MappingDB(opts.db_file)
+    #database = db.MappingDB(opts.db_file)
+
+    radix_tree = radix.Radix()
+    ip2asn = ip2as.IP2ASRadix(radix_tree)
+    current_path = pathlib.Path().absolute()
+    local = ip2asn.download_latest_caida_pfx2as(current_path)
+    ip2asn = ip2asn.from_caida_prefix2as(local)
 
     for file in get_ripe_files_list(opts.ripedir):
         fd = open(os.path.join(opts.ripedir, file), "r")
@@ -80,11 +89,11 @@ def main():
             parsed_traceroute["src_addr"] = traceroute.get("src_addr", "*")
             parsed_traceroute["dst_addr"] = traceroute.get("dst_addr", "*")
             parsed_traceroute["endtime"] = traceroute.get("endtime", "*")
-            parsed_traceroute["result"] = ip2asn(
-                database, traceroute.get("result", None)
+            parsed_traceroute["result"] = ip2asn_mapping(
+                ip2asn, traceroute.get("result", None)
             )
 
             parsed_data.append(parsed_traceroute)
 
-
+    print(parsed_data[-10:-1])
 main()
