@@ -33,7 +33,7 @@ class IP2ASDict:
         ip2as = dict(
             (ip, asn)
             for ip, asn in cur.execute("SELECT addr, asn FROM ip_asn_mapping;")
-            if asn > 0
+            if isinstance(asn, int) and asn > 0
         )
         # logging.info("Loaded bdrmapit ip2as with %d IPs from %s", len(ip2as), fn)
         return ip2as

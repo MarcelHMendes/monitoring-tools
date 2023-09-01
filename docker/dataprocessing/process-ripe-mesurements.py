@@ -16,8 +16,10 @@ def get_ripe_files_list(dir):
     return files
 
 
-def ip2asn_mapping(radixdb, traceroute_hops):
+def ip2asn_mapping(asdictdb, radixdb, traceroute_hops):
     hops = []
+    cont_radix = 0
+    cont_asdict = 0
     for hop in traceroute_hops:
         result = hop.get("result", None)
         if not result:
@@ -26,7 +28,14 @@ def ip2asn_mapping(radixdb, traceroute_hops):
         if not ip_str:
             continue
         asn = radixdb.get(ip_str)
+        cont_radix += 1
+        if not asn:
+            asn = asdictdb.get(ip_str, None)
+            if asn:
+                cont_asdict += 1
         hops.append(asn)
+    print(cont_radix, cont_asdict)
+
     return hops
 
 
@@ -77,6 +86,10 @@ def main():
     local = ip2asn.download_latest_caida_pfx2as(current_path)
     ip2asn = ip2asn.from_caida_prefix2as(local)
 
+    ip2asn_2 = ip2as.IP2ASDict()
+    ip2asn_2 = ip2asn_2.from_team_cymru_sqlite3(opts.db_file)
+
+
     for file in get_ripe_files_list(opts.ripedir):
         fd = open(os.path.join(opts.ripedir, file), "r")
         data = json.load(fd)
@@ -89,7 +102,7 @@ def main():
             parsed_traceroute["src_addr"] = traceroute.get("src_addr", "*")
             parsed_traceroute["dst_addr"] = traceroute.get("dst_addr", "*")
             parsed_traceroute["endtime"] = traceroute.get("endtime", "*")
-            parsed_traceroute["result"] = ip2asn_mapping(
+            parsed_traceroute["result"] = ip2asn_mapping(ip2asn_2,
                 ip2asn, traceroute.get("result", None)
             )
 
