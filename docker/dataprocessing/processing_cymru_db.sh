@@ -1,6 +1,10 @@
 #!/bin/bash
 set -eu
 
+
+# cleanup before exit
+trap 'rm -f ips_file ips_file_sorted ips_mapped ips_mapped_sorted ips_mapped.csv' EXIT
+
 function remove_duplicates_addr () {
     awk -F ',' -v col="2" '
     BEGIN {
@@ -16,9 +20,6 @@ function remove_duplicates_addr () {
 '
 }
 
-# cleanup before exit
-trap 'rm -f ips_file ips_file_sorted ips_mapped ips_mapped_sorted ips_mapped.csv' EXIT
-
 python3 db.py
 
 python3 traceroutes_ip2file.py --ripedir "/home/mmendes/monitor/data/ripe-measurements" --outdir ips_file
@@ -32,8 +33,7 @@ netcat whois.cymru.com 43 < ips_file_sorted | sort -n > ips_mapped
 # remove duplicates and sort mapped ips
 sort -u ips_mapped > ips_mapped_sorted
 
-# remove spaces and add comma separation, add line number in the beggining of the row (We'll use as PK),
-# remove extra information
+# remove spaces and add comma separation, remove duplicate mapping
 sed 's/ //g; s/|/,/g'  ips_mapped_sorted  | cut -d',' -f1-3 | remove_duplicates_addr > ips_mapped.csv
 
 # import data to database

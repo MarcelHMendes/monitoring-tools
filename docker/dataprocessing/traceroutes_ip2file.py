@@ -6,6 +6,11 @@ import os
 import sys
 
 
+def get_ripe_files_list(dir):
+    files = []
+    files = os.listdir(dir)
+    return files
+
 def dump_traceroute_ips(fd, traceroute_hops):
     for hop in traceroute_hops:
         result = hop.get("result", None)
@@ -19,12 +24,6 @@ def dump_traceroute_ips(fd, traceroute_hops):
 
         fd.write(str(ip_net.network_address))
         fd.write("\n")
-
-
-def get_ripe_files_list(dir):
-    files = []
-    files = os.listdir(dir)
-    return files
 
 
 def create_parser():

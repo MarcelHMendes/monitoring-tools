@@ -2,7 +2,6 @@ import sys
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
-import re
 
 Base = declarative_base()
 
@@ -17,7 +16,7 @@ class IPASNMapping(Base):
 
 class MappingDB:
     def __init__(self, db_file):
-        self.engine = create_engine(db_file, echo=False, query_cache_size=0)
+        self.engine = create_engine(db_file, echo=True)
         self.table = IPASNMapping()
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)

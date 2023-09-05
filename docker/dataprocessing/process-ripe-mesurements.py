@@ -78,8 +78,6 @@ def main():
     opts = parser.parse_args()
     fd_out = open(opts.outdir, "a")
 
-    #database = db.MappingDB(opts.db_file)
-
     radix_tree = radix.Radix()
     ip2asn = ip2as.IP2ASRadix(radix_tree)
     current_path = pathlib.Path().absolute()
