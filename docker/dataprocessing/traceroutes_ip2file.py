@@ -1,15 +1,12 @@
-import json
-import ipaddress
 import argparse
+import ipaddress
+import json
 import logging
 import os
 import sys
 
+import lib
 
-def get_ripe_files_list(dir):
-    files = []
-    files = os.listdir(dir)
-    return files
 
 def dump_traceroute_ips(fd, traceroute_hops):
     for hop in traceroute_hops:
@@ -48,17 +45,13 @@ def create_parser():
 
 
 def main():
-    root = logging.getLogger()
-    root.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    root.addHandler(handler)
+    lib.set_logging()
 
     parser = create_parser()
     opts = parser.parse_args()
     fd_out = open(opts.outdir, "a")
 
-    for file in get_ripe_files_list(opts.ripedir):
+    for file in lib.get_ripe_files_list(opts.ripedir):
         fd = open(os.path.join(opts.ripedir, file), "r")
         data = json.load(fd)
         for traceroute in data:

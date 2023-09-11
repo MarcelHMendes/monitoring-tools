@@ -1,7 +1,7 @@
 import ipaddress
-import pandas as pd
-import re
-import db
+import logging
+import os
+import sys
 
 BOGONS = [
     "0.0.0.0/8",  # RFC 1122 'this' network
@@ -29,3 +29,17 @@ def is_private_ip(ip):
         if ip_obj in pfx:
             return True
     return False
+
+
+def get_ripe_files_list(dir):
+    files = []
+    files = os.listdir(dir)
+    return files
+
+
+def set_logging():
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    root.addHandler(handler)

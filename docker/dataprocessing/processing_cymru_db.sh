@@ -20,6 +20,7 @@ function remove_duplicates_addr () {
 '
 }
 
+# Create db
 python3 db.py
 
 python3 traceroutes_ip2file.py --ripedir "/home/mmendes/monitor/data/ripe-measurements" --outdir ips_file
@@ -27,13 +28,13 @@ python3 traceroutes_ip2file.py --ripedir "/home/mmendes/monitor/data/ripe-measur
 # remove duplicates and sort IPs
 sort -u ips_file > ips_file_sorted
 
-# ip to as lookup
+# AS lookup
 netcat whois.cymru.com 43 < ips_file_sorted | sort -n > ips_mapped
 
 # remove duplicates and sort mapped ips
 sort -u ips_mapped > ips_mapped_sorted
 
-# remove spaces and add comma separation, remove duplicate mapping
+# remove spaces, add comma separation and remove duplicate mapping
 sed 's/ //g; s/|/,/g'  ips_mapped_sorted  | cut -d',' -f1-3 | remove_duplicates_addr > ips_mapped.csv
 
 # import data to database

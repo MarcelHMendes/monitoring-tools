@@ -1,42 +1,32 @@
+import argparse
 import json
 import os
-import argparse
-import logging
-import sys
-import radix
-import ip2as
 import pathlib
 
-
-def get_ripe_files_list(dir):
-    files = []
-    files = os.listdir(dir)
-    return files
-
-
-def set_logging():
-    root = logging.getLogger()
-    root.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    root.addHandler(handler)
+import ip2as
+import lib
+import radix
 
 
 def routeviews_db():
+    """Return routeviews mapping"""
     radix_tree = radix.Radix()
     ip2asn = ip2as.IP2ASRadix(radix_tree)
-    current_path = pathlib.Path().absolute()
-    local = ip2asn.download_latest_caida_pfx2as(current_path)
+    current_path = pathlib.Path().absolute()  # remove
+    local = ip2asn.download_latest_caida_pfx2as(current_path)  # remove
     ip2asn = ip2asn.from_caida_prefix2as(local)
     return ip2asn
 
 
-def cymru_db(opts):
+def cymru_db(db_file):
+    """Return team cymru mapping"""
     ip2asn = ip2as.IP2ASDict()
-    ip2asn = ip2asn.from_team_cymru_sqlite3(opts.db_file)
+    ip2asn = ip2asn.from_team_cymru_sqlite3(db_file)
     return ip2asn
 
+
 def ip2asn_mapping(radixdb, asdictdb, traceroute_hops):
+    """Map IP to ASN using routeviews and team cymru data"""
     hops = []
     for hop in traceroute_hops:
         result = hop.get("result", None)
@@ -46,11 +36,50 @@ def ip2asn_mapping(radixdb, asdictdb, traceroute_hops):
         if not ip_str:
             continue
         asn = radixdb.get(ip_str)
-        # if radixdb doesn't resolve, we'll try asdictdb
+        # if radixdb (routeviews) doesn't resolve, we try asdictdb (cymru)
         if not asn:
             asn = asdictdb.get(ip_str, None)
         hops.append(asn)
     return hops
+
+def remove_adjacent_duplicates(input_list):
+    if not input_list:
+        return []
+
+    # Initialize a new list with the first element
+    result = [input_list[0]]
+
+    # Iterate through the input list starting from the second element
+    for i in range(1, len(input_list)):
+        # Check if the current element is different from the previous one
+        if input_list[i] != input_list[i - 1]:
+            result.append(input_list[i])
+
+    return result
+
+def remove_asterisk_from_adjacent_ases(input_list):
+    if len(input_list) < 3:
+        return input_list
+
+    result = [input_list[0]]
+
+    # Iterate through the input list starting from the second element
+    for i in range(1, len(input_list) - 1):
+        # check if the next and previous elements are the same
+        if (input_list[i] == "*" or input_list[i] == "private") and input_list[i - 1] == input_list[i + 1]:
+            continue
+        result.append(input_list[i])
+
+    result.append(input_list[-1])
+
+    return result
+
+def sanitize_path(asn_path):
+    """Remove private IPs, remove unresponsive hops and remove path prepending"""
+    asn_path = remove_asterisk_from_adjacent_ases(asn_path)
+    asn_path = remove_adjacent_duplicates(asn_path)
+
+    return asn_path
 
 def create_parser():
     desc = """Convert IP traceroutes to ASN traceroutes"""
@@ -81,15 +110,15 @@ def create_parser():
 
 
 def main():
-    set_logging()
+    lib.set_logging()
 
     parser = create_parser()
     opts = parser.parse_args()
 
     rv_ip2asn = routeviews_db()
-    cy_ip2asn = cymru_db(opts)
+    cy_ip2asn = cymru_db(opts.db_file)
 
-    for file in get_ripe_files_list(opts.ripedir):
+    for file in lib.get_ripe_files_list(opts.ripedir):
         fd = open(os.path.join(opts.ripedir, file), "r")
         data = json.load(fd)
 
@@ -101,10 +130,13 @@ def main():
             parsed_traceroute["dst_addr"] = traceroute.get("dst_addr", "*")
             parsed_traceroute["endtime"] = traceroute.get("endtime", "*")
 
-            mapping = ip2asn_mapping(
+            asn_path = ip2asn_mapping(
                 rv_ip2asn, cy_ip2asn, traceroute.get("result", None)
             )
-            parsed_traceroute["result"] = mapping
+
+            asn_path_sanitized = sanitize_path(asn_path)
+
+            parsed_traceroute["result"] = asn_path_sanitized
 
             parsed_data.append(parsed_traceroute)
 
