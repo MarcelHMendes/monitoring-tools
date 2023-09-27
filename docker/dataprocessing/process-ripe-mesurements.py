@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import json
 import os
@@ -35,12 +37,20 @@ def ip2asn_mapping(radixdb, asdictdb, traceroute_hops):
         ip_str = result[0].get("from", None)
         if not ip_str:
             continue
-        asn = radixdb.get(ip_str)
-        # if radixdb (routeviews) doesn't resolve, we try asdictdb (cymru)
-        if not asn:
-            asn = asdictdb.get(ip_str, None)
+        asn = resolve_asn(ip_str)
         hops.append(asn)
     return hops
+
+def resolve_asn(ip_str):
+    # resolve private IPs
+    if lib.is_private_ip(ip_str):
+        asn = "private"
+    # resolve via routeviews.
+    asn = radixdb.get(ip_str)
+    # if radixdb (routeviews) doesn't resolve, we try asdictdb (cymru)
+    if not asn:
+        asn = asdictdb.get(ip_str, None)
+    return asn
 
 def remove_adjacent_duplicates(input_list):
     if not input_list:
