@@ -23,7 +23,7 @@ function remove_duplicates_addr () {
 # Create db
 python3 db.py
 
-python3 traceroutes_ip2file.py --ripedir "/home/mmendes/monitor/data/ripe-measurements" --outdir ips_file
+python3 traceroutes_ip2file.py --ripedir "/etc/peering/monitor/data/ripe-measurements" --outdir ips_file
 
 # remove duplicates and sort IPs
 sort -u ips_file > ips_file_sorted

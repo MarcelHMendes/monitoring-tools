@@ -37,11 +37,11 @@ def ip2asn_mapping(radixdb, asdictdb, traceroute_hops):
         ip_str = result[0].get("from", None)
         if not ip_str:
             continue
-        asn = resolve_asn(ip_str)
+        asn = resolve_asn(radixdb, asdictdb, ip_str)
         hops.append(asn)
     return hops
 
-def resolve_asn(ip_str):
+def resolve_asn(radixdb, asdictdb, ip_str):
     # resolve private IPs
     if lib.is_private_ip(ip_str):
         asn = "private"
@@ -76,7 +76,7 @@ def remove_asterisk_from_adjacent_ases(input_list):
     # Iterate through the input list starting from the second element
     for i in range(1, len(input_list) - 1):
         # check if the next and previous elements are the same
-        if (input_list[i] == "*" or input_list[i] == "private") and input_list[i - 1] == input_list[i + 1]:
+        if (input_list[i] == "*" or input_list[i] == "private" or input_list[i] == None) and input_list[i - 1] == input_list[i + 1]:
             continue
         result.append(input_list[i])
 
