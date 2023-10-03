@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import pathlib
+import sys
 
 import ip2as
 import lib
@@ -42,6 +43,8 @@ def ip2asn_mapping(radixdb, asdictdb, traceroute_hops):
     return hops
 
 def resolve_asn(radixdb, asdictdb, ip_str):
+    if not ip_str:
+        return None
     # resolve private IPs
     if lib.is_private_ip(ip_str):
         asn = "private"
@@ -139,6 +142,7 @@ def main():
             parsed_traceroute["src_addr"] = traceroute.get("src_addr", "*")
             parsed_traceroute["dst_addr"] = traceroute.get("dst_addr", "*")
             parsed_traceroute["endtime"] = traceroute.get("endtime", "*")
+            parsed_traceroute["origin_asn"] = resolve_asn(traceroute.get("src_addr", None))
 
             asn_path = ip2asn_mapping(
                 rv_ip2asn, cy_ip2asn, traceroute.get("result", None)
@@ -148,10 +152,11 @@ def main():
 
             parsed_traceroute["result"] = asn_path_sanitized
 
+
             parsed_data.append(parsed_traceroute)
 
     with open(opts.outdir, "w") as fd_out:
         json.dump(parsed_data, fd_out)
 
-
-main()
+if __name__ == "__main__":
+    sys.exit(main())
