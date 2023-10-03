@@ -25,7 +25,7 @@ class MeasurementsPerASN:
             print(key, value)
 
 
-class ASNEnforcing:
+class ROVEnforcing:
     measurements_anchor: MeasurementsPerASN
     measurements_experiment: MeasurementsPerASN
 
