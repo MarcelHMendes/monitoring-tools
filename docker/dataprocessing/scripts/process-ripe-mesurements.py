@@ -152,7 +152,6 @@ def main():
 
             parsed_traceroute["result"] = asn_path_sanitized
 
-
             parsed_data.append(parsed_traceroute)
 
     with open(opts.outdir, "w") as fd_out:
