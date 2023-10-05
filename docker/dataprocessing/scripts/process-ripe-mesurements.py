@@ -42,6 +42,7 @@ def ip2asn_mapping(radixdb, asdictdb, traceroute_hops):
         hops.append(asn)
     return hops
 
+
 def resolve_asn(radixdb, asdictdb, ip_str):
     if not ip_str:
         return None
@@ -54,6 +55,7 @@ def resolve_asn(radixdb, asdictdb, ip_str):
     if not asn:
         asn = asdictdb.get(ip_str, None)
     return asn
+
 
 def remove_adjacent_duplicates(input_list):
     if not input_list:
@@ -70,6 +72,7 @@ def remove_adjacent_duplicates(input_list):
 
     return result
 
+
 def remove_asterisk_from_adjacent_ases(input_list):
     if len(input_list) < 3:
         return input_list
@@ -79,7 +82,9 @@ def remove_asterisk_from_adjacent_ases(input_list):
     # Iterate through the input list starting from the second element
     for i in range(1, len(input_list) - 1):
         # check if the next and previous elements are the same
-        if (input_list[i] == "*" or input_list[i] == "private" or input_list[i] == None) and input_list[i - 1] == input_list[i + 1]:
+        if (
+            input_list[i] == "*" or input_list[i] == "private" or input_list[i] == None
+        ) and input_list[i - 1] == input_list[i + 1]:
             continue
         result.append(input_list[i])
 
@@ -87,12 +92,14 @@ def remove_asterisk_from_adjacent_ases(input_list):
 
     return result
 
+
 def sanitize_path(asn_path):
     """Remove private IPs, remove unresponsive hops and remove path prepending"""
     asn_path = remove_asterisk_from_adjacent_ases(asn_path)
     asn_path = remove_adjacent_duplicates(asn_path)
 
     return asn_path
+
 
 def create_parser():
     desc = """Convert IP traceroutes to ASN traceroutes"""
@@ -142,7 +149,9 @@ def main():
             parsed_traceroute["src_addr"] = traceroute.get("src_addr", "*")
             parsed_traceroute["dst_addr"] = traceroute.get("dst_addr", "*")
             parsed_traceroute["endtime"] = traceroute.get("endtime", "*")
-            parsed_traceroute["origin_asn"] = resolve_asn(traceroute.get("src_addr", None))
+            parsed_traceroute["origin_asn"] = resolve_asn(
+                rv_ip2asn, cy_ip2asn, traceroute.get("src_addr", None)
+            )
 
             asn_path = ip2asn_mapping(
                 rv_ip2asn, cy_ip2asn, traceroute.get("result", None)
@@ -156,6 +165,7 @@ def main():
 
     with open(opts.outdir, "w") as fd_out:
         json.dump(parsed_data, fd_out)
+
 
 if __name__ == "__main__":
     sys.exit(main())

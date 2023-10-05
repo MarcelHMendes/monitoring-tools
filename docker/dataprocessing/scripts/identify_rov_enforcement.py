@@ -21,7 +21,9 @@ class MeasurementsPerASN:
         data = json.load(self.file_d)
         for traceroute in data:
             if traceroute["dst_addr"] == self.target_ip:
-                self.measurements[traceroute["src_addr"]].append(traceroute["result"])
+                self.measurements[traceroute["src_addr"]].append(
+                    traceroute["result"]
+                )  # src_addr -> asn
 
     def print_test(self):
         for key, value in self.measurements.items():
@@ -50,6 +52,7 @@ def create_parser():
         required=True,
         help="File where ripe measurements are stored",
     )
+    return parser
 
 
 def main():
@@ -58,7 +61,7 @@ def main():
 
     fd = open(opts.measurements_file, "r")
 
-    asn_measurement = MeasurementsPerASN(fd)
+    asn_measurement = MeasurementsPerASN(fd, "138.185.228.1")
 
     asn_measurement.compute_measurements()
     asn_measurement.print_test()

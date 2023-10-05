@@ -6,6 +6,7 @@ import bz2
 import gzip
 import json
 import logging
+import os
 import pathlib
 import sqlite3
 from typing import Optional
@@ -128,6 +129,8 @@ class IP2ASRadix:
         remoteurl = f"{CAIDA_PFX2AS_BASEURL}/{fpath}"
         r = requests.get(remoteurl, timeout=REQUESTS_DOWNLOAD_TIMEOUT)
         r.raise_for_status()
+        dirpath = os.path.dirname(fpath)
+        os.makedirs(dirpath)
         with open(localfp, "wb") as fd:
             fd.write(r.content)
         return localfp
