@@ -13,3 +13,7 @@ services:
       - /etc/peering/monitor/data:/var/monitor/data
     env_file:
       - /etc/peering/monitor/env
+  peeringrov-dataprocessing:
+    build: ./dataprocessing
+    volumes:
+      - /etc/peering/monitor/data/:/var/monitor/data

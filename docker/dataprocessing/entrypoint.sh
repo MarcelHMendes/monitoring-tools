@@ -23,7 +23,7 @@ function remove_duplicates_addr () {
 # Create db
 python3 db.py
 
-python3 traceroutes_ip2file.py --ripedir "/etc/peering/monitor/data/ripe-measurements" --outdir ips_file
+python3 traceroutes_ip2file.py --ripedir /var/monitor/data/ripe-measurements/ --outdir ips_file
 
 # remove duplicates and sort IPs
 sort -u ips_file > ips_file_sorted
@@ -41,6 +41,6 @@ sed 's/ //g; s/|/,/g'  ips_mapped_sorted  | cut -d',' -f1-3 | remove_duplicates_
 sqlite3 cymru.db ".import --csv ips_mapped.csv ip_asn_mapping"
 
 
-python3 process-ripe-mesurements.py --ripedir /etc/peering/monitor/data/ripe-measurements/ --db_file cymru.db --outdir mesurements_"$(date +%F)".json
+python3 process-ripe-mesurements.py --ripedir /var/monitor/data/ripe-measurements/ --db_file cymru.db --outdir measurements_"$(date +%F)".json
 
-python3 identify_rov_enforcement.py
+python3 identify_rov_enforcement.py --measurements_file  measurements_"$(date +%F)".json

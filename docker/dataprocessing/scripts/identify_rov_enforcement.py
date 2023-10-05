@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 
+import argparse
 import json
-from typing import Dict, List, TextIO
+import sys
 from collections import defaultdict
+from typing import Dict, List, TextIO
+
 
 class MeasurementsPerASN:
     file_d: TextIO
@@ -29,7 +32,7 @@ class ROVEnforcing:
     measurements_anchor: MeasurementsPerASN
     measurements_experiment: MeasurementsPerASN
 
-    def __init__(self,  measurements_anchor, measurements_experiment):
+    def __init__(self, measurements_anchor, measurements_experiment):
         self.measurements_anchor = measurements_anchor
         self.experiment_ip = measurements_experiment
 
@@ -37,12 +40,29 @@ class ROVEnforcing:
         pass
 
 
+def create_parser():
+    desc = """Indentify ASes that enforces ROV"""
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument(
+        "--measurements_file",
+        dest="measurements_file",
+        action="store",
+        required=True,
+        help="File where ripe measurements are stored",
+    )
+
+
 def main():
-    fd = open("measurements.json", "r")
+    parser = create_parser()
+    opts = parser.parse_args()
+
+    fd = open(opts.measurements_file, "r")
 
     asn_measurement = MeasurementsPerASN(fd)
 
     asn_measurement.compute_measurements()
     asn_measurement.print_test()
 
-main()
+
+if __name__ == "__main__":
+    sys.exit(main())
