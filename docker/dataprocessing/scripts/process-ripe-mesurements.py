@@ -95,6 +95,7 @@ def remove_asterisk_from_adjacent_ases(input_list):
 
 def sanitize_path(asn_path):
     """Remove private IPs, remove unresponsive hops and remove path prepending"""
+    asn_path = remove_adjacent_duplicates(asn_path)
     asn_path = remove_asterisk_from_adjacent_ases(asn_path)
     asn_path = remove_adjacent_duplicates(asn_path)
 

@@ -21,9 +21,7 @@ class MeasurementsPerASN:
         data = json.load(self.file_d)
         for traceroute in data:
             if traceroute["dst_addr"] == self.target_ip:
-                self.measurements[traceroute["src_addr"]].append(
-                    traceroute["result"]
-                )  # src_addr -> asn
+                self.measurements[traceroute["origin_asn"]].append(traceroute["result"])
 
     def print_test(self):
         for key, value in self.measurements.items():
