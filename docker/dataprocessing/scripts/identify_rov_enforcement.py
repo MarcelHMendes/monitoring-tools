@@ -24,8 +24,12 @@ class MeasurementsPerASN:
 
     def _is_between_period(self, measurement_end_time) -> bool:
         """Test if the measument timestamp is between a time period"""
-        timestamp_datetime = datetime.datetime.fromtimestamp(measurement_end_time)
-        if self.start_period < timestamp_datetime.time() <= self.end_period:
+        timestamp_datetime = datetime.fromtimestamp(measurement_end_time)
+        if (
+            self.start_period
+            < timestamp_datetime.time(measurement_end_time)
+            < self.end_period
+        ):
             return True
         return False
 
