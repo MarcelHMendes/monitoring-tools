@@ -22,6 +22,9 @@ class MeasurementsPerASN:
         self.end_period = end_period
         self.measurements = defaultdict(list)
 
+    def _is_between_period() -> bool:
+        return True
+
     def compute_measurements(self):
         data = json.load(self.file_d)
         for traceroute in data:
@@ -34,15 +37,21 @@ class MeasurementsPerASN:
 
 
 class ROVEnforcing:
-    measurements_anchor: MeasurementsPerASN
-    measurements_experiment: MeasurementsPerASN
+    measurements_anchor_valid: MeasurementsPerASN
+    measurements_experiment_valid: MeasurementsPerASN
 
-    # change to measurements_anchor/experiment valid/invalid
+    measurements_anchor_invalid: MeasurementsPerASN
+    measurements_experiment_invalid: MeasurementsPerASN
+
     TARGET_ASN = 47065
 
-    def __init__(self, measurements_anchor, measurements_experiment):
-        self.measurements_anchor = measurements_anchor
-        self.experiment_ip = measurements_experiment
+    def __init__(
+        self, anchor_valid, experiment_valid, anchor_invalid, experiment_invalid
+    ):
+        self.measurements_anchor_valid = anchor_valid
+        self.measurements_experiment_valid = experiment_valid
+        self.measurements_anchor_invalid = anchor_invalid
+        self.measurements_experiment_invalid = experiment_invalid
 
     # reference: https://github.com/nrodday/TMA-21/blob/main/code/Atlas_rov_identification.py#L802
     def __most_common_trace(self, traceroutes_list) -> (list, float):
@@ -59,41 +68,47 @@ class ROVEnforcing:
             return True
         return False
 
-    def check_anchor_consistency(self, threshold):
-        """Check if the frequency of traceroutes in anchor probes is above a threshold"""
-        for asn in self.measurements_anchor:
-            most_common_trace, frequency = self.__most_common_trace(
-                self.measurements_anchor[asn]
-            )
+    def __del_asn_entry(self, asn):
+        del self.measurements_anchor_valid[asn]
+        del self.measurements_experiment_valid[asn]
+        del self.measurements_anchor_invalid[asn]
+        del self.measurements_experiment_invalid[asn]
+
+    def __check_consistency(self, measurements, threshold):
+        for asn in measurements:
+            most_common_trace, frequency = self.__most_common_trace(measurements[asn])
             if frequency < threshold or not self.__test_peering_reachability(
                 most_common_trace
             ):
-                del self.measurements_anchor[asn]
-                del self.measurements_experiment[asn]
+                self.__del_asn_entry(asn)
+
+    def check_anchor_consistency(self, threshold):
+        """Check if the frequency of traceroutes in anchor probes is above a threshold"""
+        self.__check_consistency(self.measurements_anchor_valid, threshold)
+        self.__check_consistency(self.measurements_anchor_invalid, threshold)
 
     def check_path_compatibility(self):
         """Check path simmetry when valid ROA (or non-ROA)"""
-        for asn in self.measurements_experiment:
+        for asn in self.measurements_experiment_valid:
             anchor_most_common, _ = self.__most_common_trace(
-                self.measurements_experiment[asn]
+                self.measurements_anchor_valid[asn]
             )
             experiment_most_common, _ = self.__most_common_trace(
-                self.measurements_anchor[asn]
+                self.measurements_experiment_valid[asn]
             )
 
             if anchor_most_common != experiment_most_common:
-                del self.measurements_anchor[asn]
-                del self.measurements_experiment[asn]
+                self.__del_asn_entry(asn)
 
     def potentially_rov_enforcement(self) -> list:
         """Test if there is a difference in paths when invalid ROA (or ROA eq AS0)"""
         asn_include_list = []
-        for asn in self.measurements_experiment:
+        for asn in self.measurements_experiment_invalid:
             anchor_most_common, _ = self.__most_common_trace(
-                self.measurements_experiment[asn]
+                self.measurements_anchor_invalid[asn]
             )
             experiment_most_common, _ = self.__most_common_trace(
-                self.measurements_anchor[asn]
+                self.measurements_experiment_invalid[asn]
             )
             if anchor_most_common != experiment_most_common:
                 asn_include_list.append(asn)
@@ -104,7 +119,7 @@ class ROVEnforcing:
         classification = {}
         for asn in include_list:
             experiment_most_common = self.__most_common_trace(
-                self.measurements_experiment[asn]
+                self.measurements_experiment_invalid[asn]
             )
             if self.__test_peering_reachability(experiment_most_common):
                 classification[asn] = "route_divergence"
@@ -133,7 +148,12 @@ def main():
 
     fd = open(opts.measurements_file, "r")
 
-    asn_measurement = MeasurementsPerASN(fd, "138.185.228.1")
+    asn_measurement = MeasurementsPerASN(
+        file_d=fd,
+        traget_ip="138.185.228.1",
+        start_period=datetime.time(0, 0, 0),
+        end_period=datetime.time(12, 00, 00),
+    )
 
     asn_measurement.compute_measurements()
     asn_measurement.print_test()
