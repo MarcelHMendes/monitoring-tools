@@ -22,13 +22,20 @@ class MeasurementsPerASN:
         self.end_period = end_period
         self.measurements = defaultdict(list)
 
-    def _is_between_period() -> bool:
-        return True
+    def _is_between_period(self, measurement_end_time) -> bool:
+        """Test if the measument timestamp is between a time period"""
+        timestamp_datetime = datetime.datetime.fromtimestamp(measurement_end_time)
+        if self.start_period < timestamp_datetime.time() <= self.end_period:
+            return True
+        return False
 
-    def compute_measurements(self):
+    def compute_measurements(self) -> None:
+        """Filter measurement data according to the target_ip and time parameters"""
         data = json.load(self.file_d)
         for traceroute in data:
-            if traceroute["dst_addr"] == self.target_ip:  # add time constraint
+            if traceroute["dst_addr"] == self.target_ip and self._is_between_period(
+                traceroute["end_time"]
+            ):
                 self.measurements[traceroute["origin_asn"]].append(traceroute["result"])
 
     def print_test(self):
@@ -68,13 +75,13 @@ class ROVEnforcing:
             return True
         return False
 
-    def __del_asn_entry(self, asn):
+    def __del_asn_entry(self, asn) -> None:
         del self.measurements_anchor_valid[asn]
         del self.measurements_experiment_valid[asn]
         del self.measurements_anchor_invalid[asn]
         del self.measurements_experiment_invalid[asn]
 
-    def __check_consistency(self, measurements, threshold):
+    def __check_consistency(self, measurements, threshold) -> None:
         for asn in measurements:
             most_common_trace, frequency = self.__most_common_trace(measurements[asn])
             if frequency < threshold or not self.__test_peering_reachability(
@@ -82,12 +89,12 @@ class ROVEnforcing:
             ):
                 self.__del_asn_entry(asn)
 
-    def check_anchor_consistency(self, threshold):
+    def check_anchor_consistency(self, threshold) -> None:
         """Check if the frequency of traceroutes in anchor probes is above a threshold"""
         self.__check_consistency(self.measurements_anchor_valid, threshold)
         self.__check_consistency(self.measurements_anchor_invalid, threshold)
 
-    def check_path_compatibility(self):
+    def check_path_compatibility(self) -> None:
         """Check path simmetry when valid ROA (or non-ROA)"""
         for asn in self.measurements_experiment_valid:
             anchor_most_common, _ = self.__most_common_trace(
@@ -148,15 +155,15 @@ def main():
 
     fd = open(opts.measurements_file, "r")
 
-    asn_measurement = MeasurementsPerASN(
+    anchor_valid = MeasurementsPerASN(
         file_d=fd,
         traget_ip="138.185.228.1",
         start_period=datetime.time(0, 0, 0),
         end_period=datetime.time(12, 00, 00),
     )
 
-    asn_measurement.compute_measurements()
-    asn_measurement.print_test()
+    anchor_valid.compute_measurements()
+    anchor_valid.print_test()
 
 
 if __name__ == "__main__":
