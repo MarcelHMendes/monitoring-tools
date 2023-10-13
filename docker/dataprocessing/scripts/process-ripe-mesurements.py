@@ -15,8 +15,8 @@ def routeviews_db():
     """Return routeviews mapping"""
     radix_tree = radix.Radix()
     ip2asn = ip2as.IP2ASRadix(radix_tree)
-    current_path = pathlib.Path().absolute()  # remove
-    local = ip2asn.download_latest_caida_pfx2as(current_path)  # remove
+    current_path = pathlib.Path().absolute()
+    local = ip2asn.download_latest_caida_pfx2as(current_path)
     ip2asn = ip2asn.from_caida_prefix2as(local)
     return ip2asn
 
@@ -36,8 +36,6 @@ def ip2asn_mapping(radixdb, asdictdb, traceroute_hops):
         if not result:
             continue
         ip_str = result[0].get("from", None)
-        if not ip_str:
-            continue
         asn = resolve_asn(radixdb, asdictdb, ip_str)
         hops.append(asn)
     return hops

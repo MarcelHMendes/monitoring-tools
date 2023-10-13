@@ -1,44 +1,46 @@
 #!/usr/bin/env python3
 
 import argparse
-from datetime import datetime
 import json
+import logging
 import sys
 from collections import Counter, defaultdict
+from datetime import datetime, time
 from typing import Dict, List, TextIO
 
 
 class MeasurementsPerASN:
-    file_d: TextIO
+    data: list
     target_ip: str
     start_period: datetime
     end_period: datetime
     measurements: Dict[str, List]
 
-    def __init__(self, fd, target_ip, start_period, end_period):
-        self.file_d = fd
+    def __init__(self, data, target_ip, start_period, end_period):
+        self.data = data
         self.target_ip = target_ip
         self.start_period = start_period
         self.end_period = end_period
         self.measurements = defaultdict(list)
 
     def _is_between_period(self, measurement_end_time) -> bool:
-        """Test if the measument timestamp is between a time period"""
+        """Test if the measurement timestamp is between a time period"""
         timestamp_datetime = datetime.fromtimestamp(measurement_end_time)
-        if (
-            self.start_period
-            < timestamp_datetime.time(measurement_end_time)
-            < self.end_period
-        ):
+        if self.start_period < timestamp_datetime.time() < self.end_period:
             return True
         return False
 
     def compute_measurements(self) -> None:
         """Filter measurement data according to the target_ip and time parameters"""
-        data = json.load(self.file_d)
-        for traceroute in data:
-            if traceroute["dst_addr"] == self.target_ip and self._is_between_period(
-                traceroute["end_time"]
+
+        if not self.data:
+            logging.error("Error acessing measurements data")
+            return
+        for traceroute in self.data:
+            if (
+                traceroute["dst_addr"] == self.target_ip
+                and self._is_between_period(traceroute["endtime"])
+                and traceroute["origin_asn"] != None
             ):
                 self.measurements[traceroute["origin_asn"]].append(traceroute["result"])
 
@@ -80,12 +82,14 @@ class ROVEnforcing:
         return False
 
     def __del_asn_entry(self, asn) -> None:
+        """Remove asn entry from all measurements"""
         del self.measurements_anchor_valid[asn]
         del self.measurements_experiment_valid[asn]
         del self.measurements_anchor_invalid[asn]
         del self.measurements_experiment_invalid[asn]
 
     def __check_consistency(self, measurements, threshold) -> None:
+        """Get the most common traceroute in list and verify if it is above threshold"""
         for asn in measurements:
             most_common_trace, frequency = self.__most_common_trace(measurements[asn])
             if frequency < threshold or not self.__test_peering_reachability(
@@ -126,7 +130,7 @@ class ROVEnforcing:
         return asn_include_list
 
     def classify_rov_enforcement_type(self, include_list) -> dict:
-        """Receive potentially rov enforcement list and classify the type of enforcement"""
+        """Receive potentially_rov_enforcement list and classify the type of enforcement"""
         classification = {}
         for asn in include_list:
             experiment_most_common = self.__most_common_trace(
@@ -158,13 +162,23 @@ def main():
     opts = parser.parse_args()
 
     fd = open(opts.measurements_file, "r")
+    data = json.load(fd)
 
     anchor_valid = MeasurementsPerASN(
-        file_d=fd,
-        traget_ip="138.185.228.1",
-        start_period=datetime.time(0, 0, 0),
-        end_period=datetime.time(12, 00, 00),
+        data=data,
+        target_ip="138.185.228.1",
+        start_period=time(0, 0, 0),
+        end_period=time(12, 00, 00),
     )
+    experiment_valid = MeasurementsPerASN(
+        data=data,
+        target_ip="138.185.229.1",
+        start_period=time(0, 0, 0),
+        end_period=time(12, 00, 00),
+    )
+
+    experiment_valid.compute_measurements()
+    experiment_valid.print_test()
 
     anchor_valid.compute_measurements()
     anchor_valid.print_test()
