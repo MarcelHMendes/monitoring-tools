@@ -99,6 +99,7 @@ def sanitize_path(asn_path):
     asn_path = remove_adjacent_duplicates(asn_path)
     asn_path = remove_asterisk_from_adjacent_ases(asn_path)
     asn_path = remove_adjacent_duplicates(asn_path)
+    # remove unresponsive_hops
 
     return asn_path
 
