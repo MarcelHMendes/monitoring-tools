@@ -33,9 +33,12 @@ def ip2asn_mapping(radixdb, asdictdb, traceroute_hops):
     hops = []
     for hop in traceroute_hops:
         result = hop.get("result", None)
-        if not result:
-            continue
-        ip_str = result[0].get("from", None)
+        # if not result:
+        #    continue
+        if result:
+            ip_str = result[0].get("from", None)
+        else:
+            ip_str = None
         asn = resolve_asn(radixdb, asdictdb, ip_str)
         hops.append(asn)
     return hops
@@ -137,14 +140,13 @@ def main():
     rv_ip2asn = routeviews_db()
     cy_ip2asn = cymru_db(opts.db_file)
 
+    parsed_data = []
     for file in lib.get_ripe_files_list(opts.ripedir):
         fd = open(os.path.join(opts.ripedir, file), "r")
         data = json.load(fd)
 
-        parsed_data = []
         for traceroute in data:
             parsed_traceroute = {}
-
             parsed_traceroute["src_addr"] = traceroute.get("src_addr", "*")
             parsed_traceroute["dst_addr"] = traceroute.get("dst_addr", "*")
             parsed_traceroute["endtime"] = traceroute.get("endtime", "*")
