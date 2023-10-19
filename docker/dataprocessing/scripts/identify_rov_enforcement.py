@@ -3,6 +3,7 @@
 import argparse
 import json
 import logging
+import os
 import sys
 from collections import Counter, defaultdict
 from datetime import datetime, time
@@ -12,21 +13,25 @@ from typing import Dict, List, TextIO
 class MeasurementsPerASN:
     data: list
     target_ip: str
-    start_period: datetime
-    end_period: datetime
+    start_time: datetime
+    end_time: datetime
     measurements: Dict[str, List]
 
-    def __init__(self, data, target_ip, start_period, end_period):
+    def __init__(self, data, target_ip, target_day, start_time, end_time):
         self.data = data
         self.target_ip = target_ip
-        self.start_period = start_period
-        self.end_period = end_period
+        self.target_day = target_day
+        self.start_time = start_time
+        self.end_time = end_time
         self.measurements = defaultdict(list)
 
     def _is_between_period(self, measurement_end_time) -> bool:
-        """Test if the measurement timestamp is between a time period"""
+        """Test if the measurement timestamp is in the target day and between a time period"""
         timestamp_datetime = datetime.fromtimestamp(measurement_end_time)
-        if self.start_period < timestamp_datetime.time() < self.end_period:
+        target_date = datetime.strptime(self.target_day, "%Y-%m-%d")
+        if timestamp_datetime.date() != target_date.date():
+            return False
+        if self.start_time < timestamp_datetime.time() < self.end_time:
             return True
         return False
 
@@ -42,7 +47,9 @@ class MeasurementsPerASN:
                 and self._is_between_period(traceroute["endtime"])
                 and traceroute["origin_asn"] != None
             ):
-                self.measurements[traceroute["origin_asn"]].append(traceroute["result"])
+                self.measurements[
+                    (traceroute["origin_asn"], traceroute["src_addr"])
+                ].append(traceroute["result"])
 
     def print_test(self):
         for key, value in self.measurements.items():
@@ -56,6 +63,8 @@ class ROVEnforcing:
     measurements_anchor_invalid: MeasurementsPerASN
     measurements_experiment_invalid: MeasurementsPerASN
 
+    peers_asn_list: dict
+
     TARGET_ASN = 47065
 
     def __init__(
@@ -65,8 +74,10 @@ class ROVEnforcing:
         self.measurements_experiment_valid = experiment_valid
         self.measurements_anchor_invalid = anchor_invalid
         self.measurements_experiment_invalid = experiment_invalid
+        self.peers_asn_list = defaultdict(tuple)
 
     # reference: https://github.com/nrodday/TMA-21/blob/main/code/Atlas_rov_identification.py#L802
+    # change most_common_trace code to get all traceroutes considered "normal/good"
     def __most_common_trace(self, traceroutes_list) -> (list, float):
         """Returns the most common traceroute and the frequency of ocurrence"""
         total_measurements = len(traceroutes_list)
@@ -115,6 +126,16 @@ class ROVEnforcing:
             if anchor_most_common != experiment_most_common:
                 self.__del_asn_entry(asn)
 
+    def import_peering_asn_list(self, peer_file):
+        fd = open(peer_file, "r")
+        data = json.load(fd)
+        for connection in data:
+            if connection["IP version"] == "IPv4":
+                self.peers_asn_list[connection["Session ID"]] = (
+                    connection["Peer ASN"],
+                    connection["BGP Mux"],
+                )
+
     def potentially_rov_enforcement(self) -> list:
         """Test if there is a difference in paths when invalid ROA (or ROA eq AS0)"""
         asn_include_list = []
@@ -148,11 +169,18 @@ def create_parser():
     desc = """Identify ASes that enforces ROV"""
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument(
-        "--measurements_file",
-        dest="measurements_file",
+        "--target_day",
+        dest="target_day",
         action="store",
         required=True,
-        help="File where ripe measurements are stored",
+        help="Chosen day to perform the analysis (e.g 2023-05-19)",
+    )
+    parser.add_argument(
+        "--peers_list",
+        dest="peers_list",
+        action="store",
+        required=True,
+        help="PEERING peers list FILE",
     )
     return parser
 
@@ -161,28 +189,38 @@ def main():
     parser = create_parser()
     opts = parser.parse_args()
 
-    fd = open(opts.measurements_file, "r")
+    filename = f"measurements_{opts.target_day}.json"
+    fd = open(os.path.join("/etc/peering/monitor/data/ripe-compiled/", filename), "r")
     data = json.load(fd)
 
     anchor_valid = MeasurementsPerASN(
         data=data,
         target_ip="138.185.228.1",
-        start_period=time(0, 0, 0),
-        end_period=time(12, 00, 00),
+        target_day="2023-08-23",
+        start_time=time(0, 0, 0),
+        end_time=time(12, 00, 00),
     )
 
     experiment_valid = MeasurementsPerASN(
         data=data,
         target_ip="138.185.229.1",
-        start_period=time(0, 0, 0),
-        end_period=time(12, 00, 00),
+        target_day="2023-08-23",
+        start_time=time(0, 0, 0),
+        end_time=time(12, 00, 00),
     )
 
     experiment_valid.compute_measurements()
-    experiment_valid.print_test()
+    # experiment_valid.print_test()
 
     anchor_valid.compute_measurements()
-    anchor_valid.print_test()
+    # anchor_valid.print_test()
+
+    rov_identification = ROVEnforcing(
+        experiment_valid, experiment_valid, experiment_valid, experiment_valid
+    )
+
+    rov_identification.import_peering_asn_list(opts.peers_list)
+    rov_identification.print_test_temporary()
 
 
 if __name__ == "__main__":

@@ -50,6 +50,7 @@ def resolve_asn(radixdb, asdictdb, ip_str):
     # resolve private IPs
     if lib.is_private_ip(ip_str):
         asn = "private"
+        return asn
     # resolve via routeviews.
     asn = radixdb.get(ip_str)
     # if radixdb (routeviews) doesn't resolve, we try asdictdb (cymru)
