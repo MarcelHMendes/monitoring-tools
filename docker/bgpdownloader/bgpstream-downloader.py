@@ -137,10 +137,7 @@ def process_bgpdump(bgp_dump):
 
 
 def generate_times_list(opts):
-    # Get the current UTC datetime
-    current_datetime = datetime.datetime.utcnow()
-
-    # Generate a list of datetime objects for each day in the last week
+    # Generate a list of datetime objects for each day
     date_list = []
     current_date = opts.start_date
     while current_date <= opts.stop_date:

@@ -1,18 +1,15 @@
 version: "3.3"
 
 services:
-  peeringrov-bgpmonitor:
+  bgpmonitor-dump:
     build: ./bgpdownloader
     volumes:
       - /etc/peering/monitor/data:/var/monitor/data
-    env_file:
-      - /etc/peering/monitor/env
-  peeringrov-ripemonitor:
+      - /etc/peering/monitor/config.json:/root/config.json
+  ripemonitor-dump:
     build: ./ripedownloader
     volumes:
       - /etc/peering/monitor/data:/var/monitor/data
-    env_file:
-      - /etc/peering/monitor/env
   peeringrov-dataprocessing:
     build: ./dataprocessing
     volumes:
