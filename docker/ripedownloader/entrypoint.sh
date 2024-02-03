@@ -3,9 +3,8 @@ set -e
 
 pushd /root/
 
-NUM_DAYS_CONSIDERED=7
-START_DATE=$(date --date "$NUM_DAYS_CONSIDERED days ago" +%Y-%m-%d)
-STOP_DATE=$(date +%Y-%m-%d)
+start_date=$(jq -r '.start_date' config.json)
+end_date=$(jq -r '.end_date' config.json)
+api_key=$(jq -r '.api_key' config.json)
 
-
-exec python3 fetch-measurements.py --api-key "$API_KEY" --measurement-ids "/var/monitor/data/ids-file" --start-date "$START_DATE" --stop-date "$STOP_DATE" --outdir "/var/monitor/data/ripe-measurements/"
+exec python3 fetch-measurements.py --api-key "$API_KEY" --measurement-ids "/var/monitor/data/ids-file" --start-date "$start_date" --stop-date "$end_date" --outdir "/var/monitor/data/ripe-raw_$start_date#$end_date/"

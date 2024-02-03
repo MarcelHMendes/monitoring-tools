@@ -10,6 +10,7 @@ services:
     build: ./ripedownloader
     volumes:
       - /etc/peering/monitor/data:/var/monitor/data
+      - /etc/peering/monitor/config.json:/root/config.json
   peeringrov-dataprocessing:
     build: ./dataprocessing
     volumes:
