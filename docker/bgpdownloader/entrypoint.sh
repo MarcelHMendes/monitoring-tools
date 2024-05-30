@@ -1,10 +1,13 @@
 #!/usr/bin/dumb-init /bin/bash
+
 set -e
 
 pushd /root/
 
-NUM_DAYS_CONSIDERED=7
-START_DATE=$(date --date "$NUM_DAYS_CONSIDERED days ago" +%Y-%m-%d)
-STOP_DATE=$(date +%Y-%m-%d)
+prefix=$(jq -r '.prefix' config.json)
+dump_type=$(jq -r '.dump_type' config.json)
+project=$(jq -r '.project' config.json)
+start_date=$(jq -r '.start_date' config.json)
+end_date=$(jq -r '.end_date' config.json)
 
-exec python3 bgpstream-downloader.py --prefixes "$PREFIXES" --dump_type "updates" --project "ripe_ris" --start-date "$START_DATE" --stop-date "$STOP_DATE"
+exec python3 bgpstream-downloader.py --prefixes "$prefix" --dump_type "$dump_type" --project "$project" --start-date "$start_date" --stop-date "$end_date"
