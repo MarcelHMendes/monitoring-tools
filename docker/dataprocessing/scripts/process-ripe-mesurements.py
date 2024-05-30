@@ -47,12 +47,17 @@ def ip2asn_mapping(radixdb, asdictdb, traceroute_hops):
 def resolve_asn(radixdb, asdictdb, ip_str):
     if not ip_str:
         return None
+
     # resolve private IPs
     if lib.is_private_ip(ip_str):
         asn = "private"
         return asn
+
+    # resolve PEERING ips
+    asn = lib.peering_resolver(ip_str)
     # resolve via routeviews.
-    asn = radixdb.get(ip_str)
+    if not asn:
+        asn = radixdb.get(ip_str)
     # if radixdb (routeviews) doesn't resolve, we try asdictdb (cymru)
     if not asn:
         asn = asdictdb.get(ip_str, None)
@@ -95,14 +100,33 @@ def remove_asterisk_from_adjacent_ases(input_list):
     return result
 
 
-def sanitize_path(asn_path):
+def evaluate_private_origin(input_list, origin):
+    if len(input_list) < 2:
+        return (input_list, origin)
+
+    if origin != "private":
+        return (input_list, origin)
+
+    for iasn in range(0, len(input_list)):
+        if input_list[iasn] == "private":
+            continue
+        if input_list[iasn] != None and input_list[iasn] != "*":
+            origin = input_list[iasn]
+            input_list = input_list[iasn:]
+            return (input_list, origin)
+        else:
+            break
+    return (input_list, origin)
+
+
+def sanitize_path(asn_path, origin):
     """Remove private IPs, remove unresponsive hops and remove path prepending"""
+    asn_path, origin = evaluate_private_origin(asn_path, origin)
     asn_path = remove_adjacent_duplicates(asn_path)
     asn_path = remove_asterisk_from_adjacent_ases(asn_path)
     asn_path = remove_adjacent_duplicates(asn_path)
-    # remove unresponsive_hops
 
-    return asn_path
+    return (asn_path, origin)
 
 
 def create_parser():
@@ -152,16 +176,15 @@ def main():
             parsed_traceroute["src_addr"] = traceroute.get("src_addr", "*")
             parsed_traceroute["dst_addr"] = traceroute.get("dst_addr", "*")
             parsed_traceroute["endtime"] = traceroute.get("endtime", "*")
-            parsed_traceroute["origin_asn"] = resolve_asn(
-                rv_ip2asn, cy_ip2asn, traceroute.get("src_addr", None)
-            )
 
+            origin = resolve_asn(rv_ip2asn, cy_ip2asn, traceroute.get("src_addr", None))
             asn_path = ip2asn_mapping(
                 rv_ip2asn, cy_ip2asn, traceroute.get("result", None)
             )
 
-            asn_path_sanitized = sanitize_path(asn_path)
+            asn_path_sanitized, origin_sanitized = sanitize_path(asn_path, origin)
 
+            parsed_traceroute["origin_asn"] = origin_sanitized
             parsed_traceroute["result"] = asn_path_sanitized
 
             parsed_data.append(parsed_traceroute)

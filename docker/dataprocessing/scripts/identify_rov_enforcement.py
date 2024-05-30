@@ -13,6 +13,7 @@ from typing import Dict, List, TextIO
 class MeasurementsPerASN:
     data: list
     target_ip: str
+    target_day: str
     start_time: datetime
     end_time: datetime
     measurements: Dict[str, List]
@@ -52,7 +53,7 @@ class MeasurementsPerASN:
                 ].append(traceroute["result"])
 
     def print_test(self):
-        for key, value in self.measurements.items():
+        for key, value in self.data.items():
             print(key, value)
 
 

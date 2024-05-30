@@ -20,7 +20,15 @@ BOGONS = [
     "240.0.0.0/4",  # reserved
 ]
 
+PEERING = {}
+
 BOGON_PREFIXES = list(ipaddress.IPv4Network(b) for b in BOGONS)
+
+
+def peering_resolver(ip):
+    if ip in PEERING:
+        return PEERING[ip]
+    return None
 
 
 def is_private_ip(ip):

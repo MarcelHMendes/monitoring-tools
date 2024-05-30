@@ -15,3 +15,4 @@ services:
     build: ./dataprocessing
     volumes:
       - /etc/peering/monitor/data/:/var/monitor/data
+      - /etc/peering/monitor/config.json:/root/config.json
