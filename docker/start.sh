@@ -30,7 +30,6 @@ while [ "$(docker inspect -f '{{.State.Running}}' peering_ripemonitor)" = "true"
     sleep 5
 done
 echo "peering_ripemonitor process ripe-raw_${end_date}"
-sleep 5
 
 echo "Starting container peering_dataprocessing"
 echo docker compose up $DOCKER_ARGS peeringrov-dataprocessing -d
