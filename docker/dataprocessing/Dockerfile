@@ -2,9 +2,12 @@ FROM python:3.9-slim-bullseye
 
 LABEL maintainer="Marcel Mendes <marcelmendes@dcc.ufmg.br>"
 
-# Install dumb-init to support our entrypoint script
-RUN apt-get update; apt-get install dumb-init
-RUN apt-get update; apt-get install -y netcat sqlite3
+# Install dumb-init to support our entrypoint script and other dependencies
+RUN apt-get update && apt-get install -y \
+    dumb-init \
+    netcat \
+    sqlite3 \
+    jq
 
 # Setup application home
 WORKDIR /root/
