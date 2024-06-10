@@ -3,7 +3,7 @@ set -eu
 
 
 # cleanup before exit
-trap 'rm -f ips_file ips_file_sorted ips_mapped ips_mapped_sorted ips_mapped.csv' EXIT
+trap 'rm -f ips_file ips_file_sorted ips_mapped ips_mapped_sorted ips_mapped.csv ip_asn_mapping' EXIT
 
 function remove_duplicates_addr () {
     awk -F ',' -v col="2" '
