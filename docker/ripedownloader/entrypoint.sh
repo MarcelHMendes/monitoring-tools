@@ -1,7 +1,7 @@
 #!/usr/bin/dumb-init /bin/bash
 set -e
 
-pushd /root/
+pushd /usr/source/app/
 
 start_date=$(jq -r '.start_date' config.json)
 end_date=$(jq -r '.end_date' config.json)

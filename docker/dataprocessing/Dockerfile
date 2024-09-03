@@ -10,14 +10,20 @@ RUN apt-get update && apt-get install -y \
     jq
 
 # Setup application home
-WORKDIR /root/
+WORKDIR /usr/source/app
 
 # Copy the application files
-ADD scripts/ .
-ADD entrypoint.sh .
-ADD requirements.txt .
+COPY scripts/ .
+COPY entrypoint.sh .
+COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 RUN chmod u+x ./entrypoint.sh
 
-ENTRYPOINT ["/root/entrypoint.sh"]
+RUN groupadd -g 10001 dataproc && \
+   useradd -u 10000 -g dataproc dataproc \
+   && chown -R dataproc:dataproc /usr/source/app
+
+USER dataproc:dataproc
+
+ENTRYPOINT ["/usr/source/app/entrypoint.sh"]
